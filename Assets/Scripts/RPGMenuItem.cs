@@ -50,7 +50,8 @@ public class RPGMenuItem : MonoBehaviour {
                     MenuOfThisItem.OpenNewMenuWindow(MenuToOpen);
                 break;
             case RPGMenuItemInteractType.MenuItemRenewContent:
-                MenuOfThisItem.ReloadMenuData(MenuToShowInstead);
+                MenuOfThisItem.AddMenuView(MenuToShowInstead);
+                MenuOfThisItem.LoadMenuData(); 
                 break;
             default:
                 break;
