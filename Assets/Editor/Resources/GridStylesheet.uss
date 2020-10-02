@@ -1,0 +1,15 @@
+﻿GridBackground
+{
+--grid-background-color: #282828;
+--line-color: rgba(193,196, 192, 0.1);
+--thick-line-color: rgba(193,196, 192, 0.1);
+--spacing: 10;
+}
+
+.node #title {
+	background-color: rgba(29, 30, 50, 1);
+}
+
+.node #contents {
+	background-color: rgba(110, 63, 63, 1);
+}

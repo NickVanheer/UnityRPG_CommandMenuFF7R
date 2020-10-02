@@ -5,7 +5,7 @@ using UnityEditor;
 #endif
 using System.Collections;
 
-[CustomEditor(typeof(RPGMenu))]
+[CustomEditor(typeof(NodeGraphEditor))]
 public class RPGMenuEditor : Editor {
 
     public override void OnInspectorGUI()

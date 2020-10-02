@@ -8,41 +8,32 @@ public class TestRPGMenu : MonoBehaviour {
 
     public RPGMenu PrimaryMenu;
     public RPGMenu SecondaryMenu;
+
     public List<GameObject> SceneObjects;
 
-	void Awake () {
+    void Start()
+    {
+        RPGMenuData mainBattleMenu = new RPGMenuData("Main battle UI");
+        RPGMenuData mainItemMenu = new RPGMenuData("Items");
 
-        RPGMenuWrapper menuWrapper = new RPGMenuWrapper("Battle menu");
-        menuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Attack", HelpText = "Execute a standard attack", InteractType = RPGMenuItemInteractType.MenuItemAction });
-   
-        RPGMenuWrapper subSkillMenuWrapper = new RPGMenuWrapper("MP Skills");
-        subSkillMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Blaze", InteractType = RPGMenuItemInteractType.MenuItemAction });
-        subSkillMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Booze", InteractType = RPGMenuItemInteractType.MenuItemAction });
+        mainItemMenu.AddItem(new RPGMenuItemData("Potion", "Restore health"));
+        mainItemMenu.AddItem(new RPGMenuItemData("Ether", "Restore some mana"));
 
-        RPGMenuWrapper magicMenuWrapper = new RPGMenuWrapper("Magic");
-        magicMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Fire", HelpText = "Use the power of fire", ActionToPerform = PrepareEvent(Fire), MPCost = 30, InteractType = RPGMenuItemInteractType.MenuItemAction });
-        magicMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Thunder", ActionToPerform = PrepareEvent(Thunder), MPCost = 40, InteractType = RPGMenuItemInteractType.MenuItemAction });
-        magicMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Blizzard", ActionToPerform = PrepareEvent(Blizzard), MPCost = 30, InteractType = RPGMenuItemInteractType.MenuItemAction });
+        //Items menu
+        RPGMenuItemData item1 = new RPGMenuItemData("Attack", "Attack with the current equipped weapon.", "Attack", 0, 0);
+        RPGMenuItemData item2 = new RPGMenuItemData("Battle items", "Open a new section", mainItemMenu);
+        RPGMenuItemData item3 = new RPGMenuItemData("Open a new window", "open it noaw", SecondaryMenu);
 
-        menuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Magic", HelpText = "Use powerful magic", InteractType = RPGMenuItemInteractType.MenuItemRenewContent, MenuToShowInstead = magicMenuWrapper });
-        menuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Items", HelpText = "Use an item", InteractType = RPGMenuItemInteractType.MenuItemShowNewWindow, MenuToOpen = SecondaryMenu });
+        mainBattleMenu.MenuItems.Add(item1);
+        mainBattleMenu.MenuItems.Add(item2);
+        mainBattleMenu.MenuItems.Add(item3);
 
-        //Loads the primary menu
-        //PrimaryMenu.GetComponent<RPGMenu>().LoadMenuData(menuWrapper);
-        PrimaryMenu.GetComponent<RPGMenu>().AddMenuView(menuWrapper);
-        PrimaryMenu.gameObject.SetActive(true);
-        RPGMenu.GlobalMenuList.Push(PrimaryMenu.GetComponent<RPGMenu>());
+        //Final
+        PrimaryMenu.ClearContents();
+        //SecondaryMenu.Hide();
 
-
-        //
-        RPGMenuWrapper itemMenuWrapper = new RPGMenuWrapper("Items");
-        itemMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Potion", HelpText = "Use a potion", InteractType = RPGMenuItemInteractType.MenuItemAction });
-        itemMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Phoenix Down", HelpText = "Revive a party member", InteractType = RPGMenuItemInteractType.MenuItemAction });
-        itemMenuWrapper.MenuItems.Add(new RPGMenuItemWrapper() { Text = "Ether", HelpText = "Restore MP", InteractType = RPGMenuItemInteractType.MenuItemAction });
-        SecondaryMenu.GetComponent<RPGMenu>().AddMenuView(itemMenuWrapper);
-        SecondaryMenu.gameObject.SetActive(false);
-
-        //GameManager.Instance.ChangeMP(0); //Trigger UI update to show correct MP
+        PrimaryMenu.RefreshContent(mainBattleMenu);
+        //PrimaryMenu.SetAsActivePanel();
     }
 
     UnityEvent PrepareEvent(UnityAction action)

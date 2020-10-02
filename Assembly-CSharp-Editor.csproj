@@ -56,9 +56,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Editor\RPGMenuEditor.cs" />
+    <Compile Include="Assets\Editor\NodeGraph.cs" />
+    <Compile Include="Assets\Editor\RPGMenuNode.cs" />
+    <Compile Include="Assets\Editor\UINode.cs" />
+    <Compile Include="Assets\Editor\GraphSaveUtility.cs" />
     <Compile Include="Assets\Editor\ObjectGrouperEditor.cs" />
+    <Compile Include="Assets\Editor\Utils.cs" />
+    <Compile Include="Assets\Editor\ToggleUINode.cs" />
   </ItemGroup>
   <ItemGroup>
+     <None Include="Assets\Editor\Resources\GridStylesheet.uss" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.1.6f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

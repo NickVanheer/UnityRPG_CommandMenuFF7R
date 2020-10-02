@@ -7,7 +7,7 @@ public class RPGMenuItemMagic : RPGMenuItem
     public int MPCost;
     public override bool CanInvoke()
     {
-        if (ActionToPerform != null && GameManager.Instance.CurrentMP >= MPCost)
+        if (MenuItemData.ActionToPerform != null && GameManager.Instance.CurrentMP >= MPCost)
             return true;
         return false;
     }
