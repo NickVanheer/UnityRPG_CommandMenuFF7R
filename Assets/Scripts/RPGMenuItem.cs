@@ -96,6 +96,8 @@ public class RPGMenuItem : MonoBehaviour {
             backgroundColor = GetComponent<Image>().color;
             isCached = true;
         }
+
+        transform.GetChild(0).GetComponent<Text>().text = MenuItemData.Text; //Do in Menu Item class
     }
     public virtual void Invoke()
     {
@@ -116,10 +118,10 @@ public class RPGMenuItem : MonoBehaviour {
         {
             ParentMenu.OpenNewMenuWindow(MenuItemData.MenuToOpen); //TODO Either reload contents or show a new window based on this
         }
-        else
+        else if(MenuItemData.DynamicMenuData != null)
         {
             //We don't need to open a new menu, we need to add a new subsection to the existing menu
-            ParentMenu.RefreshContent(MenuItemData.DynamicMenuData);
+            ParentMenu.OpenNewSection(MenuItemData.DynamicMenuData);
         }
     }
 
@@ -150,5 +152,11 @@ public class RPGMenuItem : MonoBehaviour {
             GetComponent<Image>().sprite = backgroundSprite;
             GetComponent<Image>().color = backgroundColor;
         }
+    }
+
+    public void ShowDisabled()
+    {
+        //GetComponent<Image>().sprite = backgroundSprite;
+        GetComponent<Image>().color = Color.gray;
     }
 }

@@ -14,26 +14,25 @@ public class TestRPGMenu : MonoBehaviour {
     void Start()
     {
         RPGMenuData mainBattleMenu = new RPGMenuData("Main battle UI");
-        RPGMenuData mainItemMenu = new RPGMenuData("Items");
+        RPGMenuData mainSkillMenu = new RPGMenuData("Skills");
 
-        mainItemMenu.AddItem(new RPGMenuItemData("Potion", "Restore health"));
-        mainItemMenu.AddItem(new RPGMenuItemData("Ether", "Restore some mana"));
+        mainSkillMenu.AddItem(new RPGMenuItemData("Omnislash", "A powerful slash"));
+        mainSkillMenu.AddItem(new RPGMenuItemData("Spiral Cut", "Another powerful slash"));
+        mainSkillMenu.AddItem(new RPGMenuItemData("Dive Cut", "You know the drill"));
 
-        //Items menu
+        //Top level item menu
         RPGMenuItemData item1 = new RPGMenuItemData("Attack", "Attack with the current equipped weapon.", "Attack", 0, 0);
-        RPGMenuItemData item2 = new RPGMenuItemData("Battle items", "Open a new section", mainItemMenu);
-        RPGMenuItemData item3 = new RPGMenuItemData("Open a new window", "open it noaw", SecondaryMenu);
+        RPGMenuItemData item2 = new RPGMenuItemData("Skills", "Open a new section", mainSkillMenu);
+        RPGMenuItemData item3 = new RPGMenuItemData("Item", "Select an item to use", SecondaryMenu);
 
         mainBattleMenu.MenuItems.Add(item1);
         mainBattleMenu.MenuItems.Add(item2);
         mainBattleMenu.MenuItems.Add(item3);
 
         //Final
-        PrimaryMenu.ClearContents();
+        PrimaryMenu.ClearContentsAndSections();
+        PrimaryMenu.OpenNewSection(mainBattleMenu);
         //SecondaryMenu.Hide();
-
-        PrimaryMenu.RefreshContent(mainBattleMenu);
-        //PrimaryMenu.SetAsActivePanel();
     }
 
     UnityEvent PrepareEvent(UnityAction action)
