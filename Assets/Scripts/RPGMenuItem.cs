@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -15,7 +16,8 @@ public class RPGMenuItemData
 
     //Contents. Either: 
     public string ActionToPerform;
-    public RPGMenu MenuToOpen; //If the menu already exists in the editor
+    //public RPGMenu MenuToOpen; 
+    public List<GameObject> WindowsToOpen; //If the menu already exists in the editor
     public RPGMenuData DynamicMenuData; //If the menu is new/dynamic
 
     public int ATBCost;
@@ -26,7 +28,7 @@ public class RPGMenuItemData
     {
         Text = text;
         HelpText = helpText;
-        MenuToOpen = null;
+        WindowsToOpen = new List<GameObject>();
         DynamicMenuData = null;
         ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = actionString;
@@ -35,11 +37,12 @@ public class RPGMenuItemData
     }
 
     //It's a new menu UI panel to open
-    public RPGMenuItemData(string text, string helpText, RPGMenu menuToOpen)
+    public RPGMenuItemData(string text, string helpText, GameObject menuToOpen)
     {
         Text = text;
         HelpText = helpText;
-        MenuToOpen = menuToOpen;
+        WindowsToOpen = new List<GameObject>();
+        WindowsToOpen.Add(menuToOpen);
         DynamicMenuData = null;
         ItemType = MenuItemActionType.NewWindow;
         ActionToPerform = "";
@@ -52,7 +55,7 @@ public class RPGMenuItemData
     {
         Text = text;
         HelpText = helpText;
-        MenuToOpen = null;
+        WindowsToOpen = new List<GameObject>();
         DynamicMenuData = null;
         ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = "";
@@ -65,7 +68,7 @@ public class RPGMenuItemData
     {
         Text = text;
         HelpText = helpText;
-        MenuToOpen = null;
+        WindowsToOpen = new List<GameObject>();
         DynamicMenuData = newData;
         ItemType = MenuItemActionType.NewMenuSection;
         ActionToPerform = "";
@@ -121,7 +124,8 @@ public class RPGMenuItem : MonoBehaviour {
                 }
                 break;
             case MenuItemActionType.NewWindow:
-                ParentMenu.OpenNewMenuWindow(MenuItemData.MenuToOpen);
+                ParentMenu.OpenGroupOfNewMenuWindows(MenuItemData.WindowsToOpen);
+                //MenuItemData.WindowsToOpen.ForEach((window) => { ParentMenu.OpenNewMenuWindow(window); }); //old
                 break;
             case MenuItemActionType.NewMenuSection:
                 ParentMenu.OpenNewSection(MenuItemData.DynamicMenuData);

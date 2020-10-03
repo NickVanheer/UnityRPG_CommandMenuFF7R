@@ -25,6 +25,7 @@ public class RPGMenuEditor : Editor {
         EditorGUILayout.LabelField("Total Menus: " + RPGMenu.MenuCountExisting);
         EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
         EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);
+        EditorGUILayout.LabelField("Child windows open: " + currentMenu.WindowsOpenAtTheSameTime.Count);
 
         EditorGUILayout.Space(10);
 

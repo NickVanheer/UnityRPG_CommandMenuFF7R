@@ -58,6 +58,9 @@ public class RPGMenu : MonoBehaviour {
     public string dbgSelectedIndex = "0";
 
     public static int MenuCountExisting = 0;
+    public static int MenuCountActive = 0;
+
+    public List<GameObject> WindowsOpenAtTheSameTime = new List<GameObject>();
 
     private void Awake()
     {
@@ -78,15 +81,31 @@ public class RPGMenu : MonoBehaviour {
             pickupUIElements(); //Picks up any UI elements already in the menu container, adds them to MenuItemsGO and creates a section
     }
 
+    public void AddToGlobalStack(RPGMenu menu)
+    {
+        if(!GlobalMenuListNavigation.Contains(menu))
+            GlobalMenuListNavigation.Push(menu);
+    }
+
     //Enabled for the first time
     void Start()
     {
-        GlobalMenuListNavigation.Push(this);
+        //AddToGlobalStack(this);
         if (MenuItemsGO.Count > 0)
         {
             selectedIndex = 0;
             updateSelected();
         }
+    }
+
+    public void OnEnable()
+    {
+        //AddToGlobalStack(this); //Messes up multiple windows
+    }
+
+    public void OnDisable()
+    {
+        
     }
 
     public void Update()
@@ -134,14 +153,13 @@ public class RPGMenu : MonoBehaviour {
 
     public void GoBackOneWindow()
     {
-        if (GlobalMenuListNavigation.Count > 1)
+        if (GlobalMenuListNavigation.Count > 0)
             GlobalMenuListNavigation.Pop();
 
-        var current = GlobalMenuListNavigation.Peek();
-        //current.GetComponent<CanvasGroup>().alpha = 1f;
         Log("Closing menu window " + this.gameObject.name);
         Hide();
     }
+
 
     public void GoBackOneSectionInCurrentWindow()
     {
@@ -194,17 +212,61 @@ public class RPGMenu : MonoBehaviour {
         drawCurrentMenuSection();
     }
 
-    public void OpenNewMenuWindow(RPGMenu menu)
+    public void OpenGroupOfNewMenuWindows(List<GameObject> gameObjects)
+    {
+        AddToGlobalStack(this);
+        //Only add the first one to the navigation list and link any open windows to this
+        RPGMenu rpgComponent = gameObjects[0].GetComponent<RPGMenu>();
+  
+        foreach (var gameObject in gameObjects)
+        {
+            gameObject.SetActive(true);
+            this.WindowsOpenAtTheSameTime.Add(gameObject);  
+        }
+
+        if (rpgComponent)
+            AddToGlobalStack(rpgComponent);
+        //if(rpgComponent)
+        //GlobalMenuListNavigation.Push(rpgComponent);
+    }
+
+    public void CloseCurrentAndAdditionalOpenedWindows()
+    {
+        if (GlobalMenuListNavigation.Count > 1)
+        {
+            RPGMenu current = GlobalMenuListNavigation.Pop();
+            RPGMenu previous = GlobalMenuListNavigation.Peek();
+            Log("Closing menu window " + this.gameObject.name);
+            Hide();
+
+            if (previous.WindowsOpenAtTheSameTime.Count > 0)
+            {
+                foreach (var gO in previous.WindowsOpenAtTheSameTime)
+                {
+                    RPGMenu rpgComponent = gO.GetComponent<RPGMenu>();
+                    if (rpgComponent)
+                        rpgComponent.Hide();
+                    else
+                        gO.SetActive(false);
+                }
+
+                previous.WindowsOpenAtTheSameTime.Clear();
+            }
+        }
+    }
+
+    public void OpenNewMenuWindow(GameObject menuGO)
     {
         //Push the current menu also on the stack
         //GlobalMenuListNavigation.Push(this);
 
-        GlobalMenuListNavigation.Push(menu);
-        menu.gameObject.SetActive(true);
+        RPGMenu rpgComponent = menuGO.GetComponent<RPGMenu>();
+        if(rpgComponent)
+            GlobalMenuListNavigation.Push(rpgComponent);
+        
+        menuGO.SetActive(true);
 
-        //Visualize that this isn't the latest window anymore
-        //GetComponent<CanvasGroup>().alpha = 0.5f;
-        Log("Opening new window: " + menu.gameObject.name);
+        Log("Opening new window: " + menuGO.name);
     }
 
     /********* Other **********/
@@ -278,9 +340,10 @@ public class RPGMenu : MonoBehaviour {
             {
                 GoBackOneSectionInCurrentWindow();
             }
-            else if (GlobalMenuListNavigation.Count > 1) //We are closing an additional dialog
+            else if (GlobalMenuListNavigation.Count > 0) //We are closing an additional dialog
             {
-                GoBackOneWindow();
+                CloseCurrentAndAdditionalOpenedWindows();
+                //GoBackOneWindow();
 
             }
         }
@@ -315,7 +378,7 @@ public class RPGMenu : MonoBehaviour {
 
     private bool updateActiveVisual()
     {
-        if (GlobalMenuListNavigation.Count > 1 && GlobalMenuListNavigation.Peek() != this)
+        if (GlobalMenuListNavigation.Count > 0 && GlobalMenuListNavigation.Peek() != this)
         {
             GetComponent<CanvasGroup>().alpha = 0.5f;
             return false;

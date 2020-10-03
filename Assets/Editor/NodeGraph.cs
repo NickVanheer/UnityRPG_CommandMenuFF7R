@@ -218,7 +218,8 @@ public class NodeGraphView : GraphView
                 }
                 else if(connectedNode.Type == RPGMenuType.NewWindow)
                 {
-                    menuNode.MenuData.MenuItems[i].MenuToOpen = CreateMenuInEditor(connectedNode);
+                    RPGMenu menu = CreateMenuInEditor(connectedNode);
+                    menuNode.MenuData.MenuItems[i].WindowsToOpen.Add(menu.gameObject);
                 }
             }
 

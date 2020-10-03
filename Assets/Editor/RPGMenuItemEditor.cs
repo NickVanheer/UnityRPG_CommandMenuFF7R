@@ -79,8 +79,30 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
                 //EditorGUILayout.Space(10);
                 break;
             case MenuItemActionType.NewWindow:
-                //EditorGUILayout.LabelField("Menu to show", EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("MenuToOpen"));
+
+                var list = property.FindPropertyRelative("WindowsToOpen");
+                var pos = EditorGUILayout.GetControlRect();
+                pos.width /= 2;
+
+                if (GUI.Button(pos, "Add window"))
+                {
+                    list.InsertArrayElementAtIndex(list.arraySize);
+                }
+                pos.x += pos.width;
+                if (GUI.Button(pos, "Clear windows"))
+                {
+                    list.ClearArray();
+                }
+                
+    
+                for (int i = 0; i < list.arraySize; i++)
+                {
+                    var listItem = list.GetArrayElementAtIndex(i);
+                    EditorGUILayout.PropertyField(listItem);
+                }
+
+
+                //EditorGUILayout.PropertyField(property.FindPropertyRelative("WindowsToOpen"));
                 break;
             case MenuItemActionType.NewMenuSection:
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"), true);
