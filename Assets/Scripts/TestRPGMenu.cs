@@ -13,6 +13,7 @@ public class TestRPGMenu : MonoBehaviour {
 
     void Start()
     {
+        /*
         RPGMenuData mainBattleMenu = new RPGMenuData("Main battle UI");
         RPGMenuData mainSkillMenu = new RPGMenuData("Skills");
 
@@ -32,6 +33,7 @@ public class TestRPGMenu : MonoBehaviour {
         //Final
         PrimaryMenu.ClearContentsAndSections();
         PrimaryMenu.OpenNewSection(mainBattleMenu);
+        */
         //SecondaryMenu.Hide();
     }
 

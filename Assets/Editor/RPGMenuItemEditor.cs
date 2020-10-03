@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Net.Http.Headers;
 using UnityEngine.UI;
+using System;
 
 [CustomEditor(typeof(RPGMenuItem))]
 public class RPGMenuItemEditor : Editor
@@ -50,13 +51,8 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
 
     }
 
-    enum ActionType { PerformAction, NewWindow, NewMenuSection }
-
-    ActionType typeOfItem;
-
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-     
         EditorGUI.BeginProperty(position, label, property);
 
         if (label.text != "Menu Item Data")
@@ -67,25 +63,26 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
 
         EditorGUILayout.PropertyField(property.FindPropertyRelative("Text"), new GUIContent("Name"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("HelpText"));
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("ItemType"));
 
-        typeOfItem = (ActionType)EditorGUILayout.EnumPopup("Type", typeOfItem);
+        int enumValue = property.FindPropertyRelative("ItemType").enumValueIndex;
 
-        switch (typeOfItem)
+        //typeOfItem = (ActionType)EditorGUILayout.EnumPopup("Type", typeOfItem);
+        MenuItemActionType actionType = (MenuItemActionType)enumValue;
+  
+        switch (actionType)
         {
-            case ActionType.PerformAction:
-                //EditorGUILayout.LabelField("Action", EditorStyles.centeredGreyMiniLabel);
-                SerializedProperty isAction = property.FindPropertyRelative("IsAction");
-                isAction.boolValue = true;
+            case MenuItemActionType.PerformAction:
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("ActionToPerform"));
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("ATBCost"));
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("MPCost"));
                 //EditorGUILayout.Space(10);
                 break;
-            case ActionType.NewWindow:
+            case MenuItemActionType.NewWindow:
                 //EditorGUILayout.LabelField("Menu to show", EditorStyles.centeredGreyMiniLabel);
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("MenuToOpen"));
                 break;
-            case ActionType.NewMenuSection:
+            case MenuItemActionType.NewMenuSection:
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"), true);
                 break;
             default:

@@ -300,7 +300,7 @@ public class NodeGraphView : GraphView
         menuItem.ActionToPerform = actionString;
 
         if (actionString.Count() > 0)
-            menuItem.IsAction = true;
+            menuItem.ItemType = MenuItemActionType.PerformAction;
 
         node.MenuData.MenuItems.Add(menuItem);
         node.AddOutputPort(menuItem.Text);

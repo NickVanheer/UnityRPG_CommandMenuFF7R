@@ -22,6 +22,20 @@ public class RPGMenuEditor : Editor {
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuTitle"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuHelp"));
 
+        EditorGUILayout.LabelField("Total Menus: " + RPGMenu.MenuCountExisting);
+        EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
+        EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);
+
+        EditorGUILayout.Space(10);
+
+        EditorGUILayout.LabelField("Items: ");
+
+        foreach (var item in currentMenu.MenuItemsGO)
+        {
+            RPGMenuItem menuItem = item.GetComponent<RPGMenuItem>();
+            EditorGUILayout.LabelField("- " + menuItem.MenuItemData.Text);
+        }
+
         if (GUILayout.Button("Add menu item"))
         {
             currentMenu.AddMenuItemGOOnly();

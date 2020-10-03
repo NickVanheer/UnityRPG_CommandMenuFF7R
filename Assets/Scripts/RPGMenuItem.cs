@@ -10,10 +10,11 @@ public class RPGMenuItemData
 {
     public string Text;
     public string HelpText;
-    public bool IsAction;
-    public string ActionToPerform;
+
+    public MenuItemActionType ItemType;
 
     //Contents. Either: 
+    public string ActionToPerform;
     public RPGMenu MenuToOpen; //If the menu already exists in the editor
     public RPGMenuData DynamicMenuData; //If the menu is new/dynamic
 
@@ -27,7 +28,7 @@ public class RPGMenuItemData
         HelpText = helpText;
         MenuToOpen = null;
         DynamicMenuData = null;
-        IsAction = true;
+        ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = actionString;
         ATBCost = atb;
         MPCost = mp;
@@ -40,7 +41,7 @@ public class RPGMenuItemData
         HelpText = helpText;
         MenuToOpen = menuToOpen;
         DynamicMenuData = null;
-        IsAction = false;
+        ItemType = MenuItemActionType.NewWindow;
         ActionToPerform = "";
         ATBCost = 0;
         MPCost = 0;
@@ -53,7 +54,7 @@ public class RPGMenuItemData
         HelpText = helpText;
         MenuToOpen = null;
         DynamicMenuData = null;
-        IsAction = false;
+        ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = "";
         ATBCost = 0;
         MPCost = 0;
@@ -66,13 +67,15 @@ public class RPGMenuItemData
         HelpText = helpText;
         MenuToOpen = null;
         DynamicMenuData = newData;
-        IsAction = false;
+        ItemType = MenuItemActionType.NewMenuSection;
         ActionToPerform = "";
         ATBCost = 0;
         MPCost = 0;
     }
 
 }
+
+public enum MenuItemActionType { PerformAction, NewWindow, NewMenuSection }
 
 public class RPGMenuItem : MonoBehaviour {
 
@@ -82,6 +85,8 @@ public class RPGMenuItem : MonoBehaviour {
     Sprite backgroundSprite;
     Color backgroundColor;
     bool isCached = false;
+
+    MenuItemSelectedAnimation animation;
 
     public void Start()
     {
@@ -97,31 +102,32 @@ public class RPGMenuItem : MonoBehaviour {
             isCached = true;
         }
 
+        animation = GetComponent<MenuItemSelectedAnimation>();
+
         //transform.GetChild(0).GetComponent<Text>().text = MenuItemData.Text; 
     }
     public virtual void Invoke()
     {
         Assert.IsNotNull(ParentMenu, "RPG menu item does not have an overarching menu assigned");
 
-        if(MenuItemData.IsAction)
+        switch (MenuItemData.ItemType)
         {
-            if (CanInvoke())
-            {
-                //MenuItemData.ActionToPerform.Invoke();
-                //TODO: Fire event to easily do this
-                
-            }
-            return;
-        }
-        
-        if (MenuItemData.MenuToOpen != null)
-        {
-            ParentMenu.OpenNewMenuWindow(MenuItemData.MenuToOpen); //TODO Either reload contents or show a new window based on this
-        }
-        else if(MenuItemData.DynamicMenuData != null)
-        {
-            //We don't need to open a new menu, we need to add a new subsection to the existing menu
-            ParentMenu.OpenNewSection(MenuItemData.DynamicMenuData);
+            case MenuItemActionType.PerformAction:
+                if (CanInvoke())
+                {
+                    //MenuItemData.ActionToPerform.Invoke();
+                    //TODO: Fire event to easily do this
+
+                }
+                break;
+            case MenuItemActionType.NewWindow:
+                ParentMenu.OpenNewMenuWindow(MenuItemData.MenuToOpen);
+                break;
+            case MenuItemActionType.NewMenuSection:
+                ParentMenu.OpenNewSection(MenuItemData.DynamicMenuData);
+                break;
+            default:
+                break;
         }
     }
 
@@ -146,11 +152,17 @@ public class RPGMenuItem : MonoBehaviour {
         {
             GetComponent<Image>().sprite = ParentMenu.MenuItemSelectedSprite;
             GetComponent<Image>().color = Color.white;
+
+            if (animation)
+                animation.Select();
         }
         else
         {
             GetComponent<Image>().sprite = backgroundSprite;
             GetComponent<Image>().color = backgroundColor;
+
+            if (animation)
+                animation.Unselect();
         }
     }
 
