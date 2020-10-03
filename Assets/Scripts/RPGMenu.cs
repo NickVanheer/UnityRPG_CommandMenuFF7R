@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
+[System.Serializable]
 public class RPGMenuData
 {
     public string MenuName;
@@ -149,13 +150,14 @@ public class RPGMenu : MonoBehaviour {
     public void AddMenuItem(RPGMenuItemData itemData)
     {
         GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, MenuItemBackgroundHolder.transform, false);
+        gO.name = itemData.Text;
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
         item.ParentMenu = this;
         item.MenuItemData = itemData;
         //item.MenuToOpen = menuToOpen;
 
         this.MenuItemsGO.Add(item);
-        //item.transform.GetChild(0).GetComponent<Text>().text = itemData.Text; //Do in Menu Item class
+        item.transform.GetChild(0).GetComponent<Text>().text = itemData.Text; //Set the text, can be safer
     }
 
     public void OpenNewSection(RPGMenuData data)
@@ -227,7 +229,28 @@ public class RPGMenu : MonoBehaviour {
             GameObject.Destroy(trans.gameObject);
         }
     }
-	
+
+    [ExecuteInEditMode]
+    public void RawClearUIFromEditor()
+    {
+        for (int i = MenuItemBackgroundHolder.transform.childCount; i > 0; --i)
+            DestroyImmediate(MenuItemBackgroundHolder.transform.GetChild(0).gameObject);
+
+        /*
+        var tempArray = new GameObject[parent.transform.childCount];
+
+        for(int i = 0; i < tempArray.Length; i++)
+        {
+            tempArray[i] = parent.transform.GetChild(i).gameObject;
+        }
+
+        foreach(var child in tempArray)
+        {
+            DestroyImmediate(child);
+        }
+         */
+    }
+
     private void handleInput()
     {
         int currentIndex = selectedIndex;

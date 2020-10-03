@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Experimental.GraphView;
@@ -116,6 +117,9 @@ public class NodeGraphView : GraphView
     public NodeGraphEditor EditorData;
     private int numberOfRPGMenus = 0;
 
+    public int StartPositionX = 30;
+    public int StartPositionY = 30;
+
     public NodeGraphView()
     {
         styleSheets.Add(Resources.Load<StyleSheet>("GridStylesheet"));
@@ -176,37 +180,76 @@ public class NodeGraphView : GraphView
         return node;
     }
 
-    public void CreateMenuInEditor(UINode menuNode)
+    public RPGMenu CreateMenuInEditor(UINode menuNode)
     {
         Assert.IsNotNull(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, "RPG Menu Panel prefab object is not set");
         
         Canvas canvas = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>();
         GameObject gO = GameObject.Instantiate(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, canvas.transform);
-
         gO.name = menuNode.MenuData.MenuName;
  
-        RPGMenu menu = gO.GetComponent<RPGMenu>();
+        RPGMenu menuComponent = gO.GetComponent<RPGMenu>();
 
-        if (menu == null)
+        if (menuComponent == null)
         {
             Utils.MessageBox("No RPGMenu Component attached to this game object");
-            return;
+            return null;
         }
 
+        menuComponent.RawClearUIFromEditor();
+
         //Add all items
-        menuNode.MenuData.MenuItems.ForEach((item) => { menu.AddMenuItem(item);  });
+        //menuNode.MenuData.MenuItems.ForEach((item) => { menuComponent.AddMenuItem(item);  });
+
+        for (int i = 0; i < menuNode.outputContainer.childCount; i++)
+        {
+            Port p = menuNode.outputContainer.ElementAt(i) as Port;
+          
+            if(p.connected)
+            {
+                //The RPGMenu connected to this menu item
+                UINode connectedNode = p.connections.First().input.node as UINode;
+
+                if(connectedNode.Type == RPGMenuType.ChangeContent)
+                {
+                    //RPGMenuData mData = GetMenuDataForNode(connectedNode);
+                    menuNode.MenuData.MenuItems[i].DynamicMenuData = connectedNode.MenuData; //TODO: keep tracing graph in case we still need to create new RPG Menu's in the editor
+                    //Todo: get item data from next section
+                }
+                else if(connectedNode.Type == RPGMenuType.NewWindow)
+                {
+                    menuNode.MenuData.MenuItems[i].MenuToOpen = CreateMenuInEditor(connectedNode);
+                }
+            }
+
+            menuComponent.AddMenuItem(menuNode.MenuData.MenuItems[i]);
+        }
+
+        return menuComponent;
     }
 
+    //Generates the data needed for a certain menu node that's set to refresh. Also calls CreateMenuInEditor in case the menu item opens a new menu
+    RPGMenuData GetMenuDataForNode(UINode node)
+    {
+        RPGMenuData data = null;
+
+        //TODO
+
+        return data;
+    }
+  
     public UINode GenerateRPGMenuNode(string menuName)
     {
         var node = new UINode() { title = menuName, IsEntryPoint = false, NodeGUID = Guid.NewGuid().ToString() };
-        node.SetPosition(new Rect(10, 10, 480, 180));
+        node.SetPosition(new Rect(StartPositionX, StartPositionY, 480, 180));
         node.AddInputPort("Input");
 
         RPGMenuData thisNodeData = new RPGMenuData(menuName);
         node.MenuData = thisNodeData;
 
         EnumField interactTypeField = new EnumField(RPGMenuType.NewWindow);
+        node.Type = (RPGMenuType)interactTypeField.value;
+        interactTypeField.RegisterValueChangedCallback((ev) => { node.Type = (RPGMenuType)ev.newValue; });
         if (numberOfRPGMenus > 0)
         {
             //Allow user to select what kind of menu it is
@@ -230,25 +273,34 @@ public class NodeGraphView : GraphView
         apCost.label = "AP cost";
         node.contentContainer.Add(apCost);
         node.contentContainer.Add(mpCost);
-        
+
+        var actionParam = new TextField("Action Parameter");
+        node.contentContainer.Add(actionParam);
+
         //Add output connectors
-        Button addButton = new Button(() => { AddRPGMenuItemToNode(node, entryName.text, helpText.text, mpCost.value, apCost.value); });
+        Button addButton = new Button(() => { AddRPGMenuItemToNode(node, entryName.text, helpText.text, mpCost.value, apCost.value, actionParam.text); });
 
         addButton.text = "Add menu item";
         node.contentContainer.Add(addButton);
 
         node.RefreshExpandedState();
         node.RefreshPorts();
-   
+
+        StartPositionX += 40;
+
         return node;
     }
-    public void AddRPGMenuItemToNode(UINode node, string name, string help, int mp, int atb)
+    public void AddRPGMenuItemToNode(UINode node, string name, string help, int mp, int atb, string actionString)
     {
         RPGMenuItemData menuItem = new RPGMenuItemData(name, help);
         menuItem.Text = name;
         menuItem.HelpText = help;
         menuItem.MPCost = mp;
         menuItem.ATBCost = atb;
+        menuItem.ActionToPerform = actionString;
+
+        if (actionString.Count() > 0)
+            menuItem.IsAction = true;
 
         node.MenuData.MenuItems.Add(menuItem);
         node.AddOutputPort(menuItem.Text);

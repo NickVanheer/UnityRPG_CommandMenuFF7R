@@ -97,7 +97,7 @@ public class RPGMenuItem : MonoBehaviour {
             isCached = true;
         }
 
-        transform.GetChild(0).GetComponent<Text>().text = MenuItemData.Text; //Do in Menu Item class
+        //transform.GetChild(0).GetComponent<Text>().text = MenuItemData.Text; 
     }
     public virtual void Invoke()
     {
