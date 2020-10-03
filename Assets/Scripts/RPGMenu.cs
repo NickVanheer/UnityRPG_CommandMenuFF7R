@@ -160,6 +160,18 @@ public class RPGMenu : MonoBehaviour {
         item.transform.GetChild(0).GetComponent<Text>().text = itemData.Text; //Set the text, can be safer
     }
 
+    public void AddMenuItemGOOnly()
+    {
+        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, MenuItemBackgroundHolder.transform, false);
+        gO.name = "New item";
+        RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
+        item.ParentMenu = this;
+        //item.MenuItemData = itemData;
+
+        this.MenuItemsGO.Add(item);
+        item.transform.GetChild(0).GetComponent<Text>().text = "New item"; //Set the text, can be safer
+    }
+
     public void OpenNewSection(RPGMenuData data)
     {
         //Add to current stack MenuSections

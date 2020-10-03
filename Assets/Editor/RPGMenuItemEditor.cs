@@ -5,11 +5,13 @@ using UnityEditor;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Net.Http.Headers;
+using UnityEngine.UI;
 
 [CustomEditor(typeof(RPGMenuItem))]
 public class RPGMenuItemEditor : Editor
 {
     SerializedProperty MenuItemData;
+    SerializedProperty NameData;
 
     void OnEnable()
     {
@@ -19,6 +21,19 @@ public class RPGMenuItemEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+
+        GameObject selectedGO = Selection.activeGameObject;
+        EditorGUILayout.LabelField("Currently editing menu item: " + selectedGO.name.ToString());
+
+        var nameString = selectedGO.GetComponent<RPGMenuItem>().MenuItemData.Text;
+
+        //Update scene objects with the data
+        if (true)
+        {
+            selectedGO.name = nameString;
+            selectedGO.transform.GetChild(0).GetComponent<Text>().text = nameString;
+        }
+
         EditorGUILayout.PropertyField(MenuItemData);
         serializedObject.ApplyModifiedProperties();
     }
@@ -27,12 +42,8 @@ public class RPGMenuItemEditor : Editor
 [CustomPropertyDrawer(typeof(RPGMenuItemData))]
 public class RPGMenuItemDataDrawer : PropertyDrawer
 {
-    SerializedProperty Name;
-    SerializedProperty HelpText;
-
     void GuiLine(int i_height = 1)
     {
-
         Rect rect = EditorGUILayout.GetControlRect(false, i_height);
         rect.height = i_height;
         EditorGUI.DrawRect(rect, new Color(0.3f, 0.3f, 0.3f, 1));
@@ -44,10 +55,11 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
     ActionType typeOfItem;
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    { 
+    {
+     
         EditorGUI.BeginProperty(position, label, property);
 
-        if(label.text != "Menu Item Data")
+        if (label.text != "Menu Item Data")
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.HelpBox("Item: " + property.FindPropertyRelative("Text").stringValue, MessageType.Info);
@@ -74,10 +86,6 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("MenuToOpen"));
                 break;
             case ActionType.NewMenuSection:
-              
-           
-
-
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"), true);
                 break;
             default:
@@ -88,7 +96,6 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
         EditorGUI.EndProperty();
     }
 }
-
 
 [CustomPropertyDrawer(typeof(RPGMenuData))]
 public class RPGMenuDataDrawer : PropertyDrawer
