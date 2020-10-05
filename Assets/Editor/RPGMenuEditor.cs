@@ -13,15 +13,20 @@ public class RPGMenuEditor : Editor {
     {
         RPGMenu currentMenu = (RPGMenu)target;
 
-        serializedObject.Update();
+        serializedObject.Update(); 
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuType"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("HostWindow"));
+        EditorGUILayout.Space(10);
+
         EditorGUILayout.PropertyField(serializedObject.FindProperty("RPGMenuItemPrefab"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuItemSelectedSprite"));
 
-        EditorGUILayout.LabelField("Required scene objects");
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuItemBackgroundHolder"));
+        EditorGUILayout.LabelField("Additional scene objects");
+        //EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuItemBackgroundHolder"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuTitle"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuHelp"));
 
+        EditorGUILayout.Space(20);
         EditorGUILayout.LabelField("Total Menus: " + RPGMenu.MenuCountExisting);
         EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
         EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);

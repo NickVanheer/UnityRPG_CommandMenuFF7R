@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 public class RPGMenuData
 {
     public string MenuName;
-    public List<RPGMenuItemData> MenuItems;
+    public List<RPGMenuItemData> MenuItems = new List<RPGMenuItemData>();
 
     public RPGMenuData(string name)
     {
@@ -24,6 +24,12 @@ public class RPGMenuData
     }
 }
 
+//Command menu: When selected menu items either perform an action, add a new section to the current menu or open up an entirely new menu
+//TabMenu: Similar, but the menu items always stay visible
+public enum RPGMenuType
+{
+    CommandMenu, TabMenu
+}
 public class RPGMenu : MonoBehaviour {
 
     //prefab
@@ -35,11 +41,11 @@ public class RPGMenu : MonoBehaviour {
     public Color MenuItemSelectedColor;
 
     //Scene objects
-    public GameObject MenuItemBackgroundHolder;
+    //public GameObject MenuItemBackgroundHolder;
     public Text MenuTitle;
     public Text MenuHelp;
 
-    public List<RPGMenuItem> MenuItemsGO;
+    public List<RPGMenuItem> MenuItemsGO = new List<RPGMenuItem>();
     public bool ClearPanelContent = false;
 
     //Indexes
@@ -62,6 +68,11 @@ public class RPGMenu : MonoBehaviour {
 
     public List<GameObject> WindowsOpenAtTheSameTime = new List<GameObject>();
 
+    public RPGMenuType MenuType = RPGMenuType.CommandMenu;
+    public GameObject HostWindow = null;
+
+    public bool IsInitialized = false;
+
     private void Awake()
     {
         if (MenuSections == null)
@@ -73,7 +84,8 @@ public class RPGMenu : MonoBehaviour {
         ID = ++IDPool;
         MenuCountExisting++;
 
-        MenuItemsGO = new List<RPGMenuItem>();
+        if (HostWindow == null)
+            HostWindow = this.gameObject;
 
         if (ClearPanelContent)
             rawRemoveUIElements(); 
@@ -174,7 +186,7 @@ public class RPGMenu : MonoBehaviour {
     /*********** PUBLIC METHODS RELATED TO CONTENT AND DATA ************/
     public void AddMenuItem(RPGMenuItemData itemData)
     {
-        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, MenuItemBackgroundHolder.transform, false);
+        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindow.transform, false);
         gO.name = itemData.Text;
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
         item.ParentMenu = this;
@@ -187,7 +199,7 @@ public class RPGMenu : MonoBehaviour {
 
     public void AddMenuItemGOOnly()
     {
-        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, MenuItemBackgroundHolder.transform, false);
+        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindow.transform, false);
         gO.name = "New item";
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
         item.ParentMenu = this;
@@ -197,13 +209,28 @@ public class RPGMenu : MonoBehaviour {
         item.transform.GetChild(0).GetComponent<Text>().text = "New item"; //Set the text, can be safer
     }
 
-    public void OpenNewSection(RPGMenuData data)
+    public void OpenNewSection(GameObject data)
     {
         //Add to current stack MenuSections
         if (MenuSections == null)
             MenuSections = new Stack<RPGMenuData>();
 
-        MenuSections.Push(data);
+        RPGMenuData menuData = new RPGMenuData(gameObject.name); //Todo use RPGMenuSection data
+
+        for (int i = 0; i < data.transform.childCount; i++)
+        {
+            GameObject child = data.transform.GetChild(i).gameObject;
+            RPGMenuItem item = child.GetComponent<RPGMenuItem>();
+
+            if(item)
+            {
+                menuData.MenuItems.Add(item.MenuItemData);
+            }
+        }
+
+        MenuSections.Push(menuData);
+
+        //MenuSections.Push(data);
 
         //Clear current window content
         removeGameObjects();
@@ -274,8 +301,12 @@ public class RPGMenu : MonoBehaviour {
     //Fill in MenuItems and the first section from what's already on the UI in the editor
     private void pickupUIElements()
     {
-        RPGMenuData currentMenu = new RPGMenuData(MenuTitle.text);
-        foreach (Transform trans in MenuItemBackgroundHolder.transform)
+        string menuTitle = "Nameless menu";
+        if (MenuTitle != null)
+            menuTitle = MenuTitle.text;
+
+        RPGMenuData currentMenu = new RPGMenuData(menuTitle);
+        foreach (Transform trans in HostWindow.transform)
         {
             RPGMenuItem item = trans.GetComponent<RPGMenuItem>();
             if(item != null)
@@ -305,7 +336,7 @@ public class RPGMenu : MonoBehaviour {
 
     private void rawRemoveUIElements()
     {
-        foreach (Transform trans in MenuItemBackgroundHolder.transform)
+        foreach (Transform trans in HostWindow.transform)
         {
             GameObject.Destroy(trans.gameObject);
         }
@@ -314,8 +345,8 @@ public class RPGMenu : MonoBehaviour {
     [ExecuteInEditMode]
     public void RawClearUIFromEditor()
     {
-        for (int i = MenuItemBackgroundHolder.transform.childCount; i > 0; --i)
-            DestroyImmediate(MenuItemBackgroundHolder.transform.GetChild(0).gameObject);
+        for (int i = HostWindow.transform.childCount; i > 0; --i)
+            DestroyImmediate(HostWindow.transform.GetChild(0).gameObject);
 
         /*
         var tempArray = new GameObject[parent.transform.childCount];

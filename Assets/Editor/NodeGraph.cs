@@ -182,25 +182,28 @@ public class NodeGraphView : GraphView
 
     public RPGMenu CreateMenuInEditor(UINode menuNode)
     {
-        Assert.IsNotNull(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, "RPG Menu Panel prefab object is not set");
-        
-        Canvas canvas = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>();
-        GameObject gO = GameObject.Instantiate(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, canvas.transform);
-        gO.name = menuNode.MenuData.MenuName;
- 
-        RPGMenu menuComponent = gO.GetComponent<RPGMenu>();
+        RPGMenu menuComponent = null;
 
-        if (menuComponent == null)
+        if (menuNode.Type == RPGMenuType.NewWindow)
         {
-            Utils.MessageBox("No RPGMenu Component attached to this game object");
-            return null;
+            Assert.IsNotNull(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, "RPG Menu Panel prefab object is not set");
+
+            Canvas canvas = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>();
+            GameObject gO = GameObject.Instantiate(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, canvas.transform);
+            gO.name = menuNode.MenuData.MenuName;
+
+            menuComponent = gO.GetComponent<RPGMenu>();
+
+            if (menuComponent == null)
+            {
+                Utils.MessageBox("No RPGMenu Component attached to this game object");
+                return null;
+            }
+
+            menuComponent.RawClearUIFromEditor();
         }
 
-        menuComponent.RawClearUIFromEditor();
-
-        //Add all items
-        //menuNode.MenuData.MenuItems.ForEach((item) => { menuComponent.AddMenuItem(item);  });
-
+        //Loop over the outputs of this node, i.e the menu items
         for (int i = 0; i < menuNode.outputContainer.childCount; i++)
         {
             Port p = menuNode.outputContainer.ElementAt(i) as Port;
@@ -212,8 +215,8 @@ public class NodeGraphView : GraphView
 
                 if(connectedNode.Type == RPGMenuType.ChangeContent)
                 {
-                    //RPGMenuData mData = GetMenuDataForNode(connectedNode);
-                    menuNode.MenuData.MenuItems[i].DynamicMenuData = connectedNode.MenuData; //TODO: keep tracing graph in case we still need to create new RPG Menu's in the editor
+                    CreateMenuInEditor(connectedNode);
+                    //menuNode.MenuData.MenuItems[i].DynamicMenuData = connectedNode.MenuData;
                     //Todo: get item data from next section
                 }
                 else if(connectedNode.Type == RPGMenuType.NewWindow)
@@ -229,16 +232,6 @@ public class NodeGraphView : GraphView
         return menuComponent;
     }
 
-    //Generates the data needed for a certain menu node that's set to refresh. Also calls CreateMenuInEditor in case the menu item opens a new menu
-    RPGMenuData GetMenuDataForNode(UINode node)
-    {
-        RPGMenuData data = null;
-
-        //TODO
-
-        return data;
-    }
-  
     public UINode GenerateRPGMenuNode(string menuName)
     {
         var node = new UINode() { title = menuName, IsEntryPoint = false, NodeGUID = Guid.NewGuid().ToString() };

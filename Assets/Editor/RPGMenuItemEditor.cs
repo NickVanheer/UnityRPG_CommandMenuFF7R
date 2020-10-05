@@ -7,12 +7,12 @@ using UnityEditor.UIElements;
 using System.Net.Http.Headers;
 using UnityEngine.UI;
 using System;
+using Assets.Editor;
 
 [CustomEditor(typeof(RPGMenuItem))]
 public class RPGMenuItemEditor : Editor
 {
     SerializedProperty MenuItemData;
-    SerializedProperty NameData;
 
     void OnEnable()
     {
@@ -24,18 +24,33 @@ public class RPGMenuItemEditor : Editor
         serializedObject.Update();
 
         GameObject selectedGO = Selection.activeGameObject;
+        RPGMenuItem menuItem = selectedGO.GetComponent<RPGMenuItem>();
         EditorGUILayout.LabelField("Currently editing menu item: " + selectedGO.name.ToString());
 
         var nameString = selectedGO.GetComponent<RPGMenuItem>().MenuItemData.Text;
 
         //Update scene objects with the data
-        if (true)
+        selectedGO.name = nameString;
+        if (selectedGO.transform.childCount > 0)
         {
-            selectedGO.name = nameString;
-            selectedGO.transform.GetChild(0).GetComponent<Text>().text = nameString;
+            Text textComp = selectedGO.transform.GetChild(0).GetComponent<Text>();
+            if(textComp)
+                textComp.text = nameString;
         }
 
+
         EditorGUILayout.PropertyField(MenuItemData);
+
+        if (menuItem.MenuItemData.ItemType == MenuItemActionType.NewMenuSection && menuItem.MenuItemData.DynamicMenuData == null)
+        {
+            if (GUILayout.Button("Add section"))
+            {
+                GameObject gO = new GameObject("New section");
+                gO.transform.parent = menuItem.gameObject.transform;
+                gO.AddComponent<RPGMenuSection>();
+                menuItem.MenuItemData.DynamicMenuData = gO;
+            }
+        }
         serializedObject.ApplyModifiedProperties();
     }
 }
@@ -53,7 +68,7 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);
+       EditorGUI.BeginProperty(position, label, property);
 
         if (label.text != "Menu Item Data")
         {
@@ -65,11 +80,14 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
         EditorGUILayout.PropertyField(property.FindPropertyRelative("HelpText"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("ItemType"));
 
-        int enumValue = property.FindPropertyRelative("ItemType").enumValueIndex;
 
-        //typeOfItem = (ActionType)EditorGUILayout.EnumPopup("Type", typeOfItem);
+    int enumValue = property.FindPropertyRelative("ItemType").enumValueIndex;
+    //int enumValue = 1;
+    //typeOfItem = (ActionType)EditorGUILayout.EnumPopup("Type", typeOfItem);
+
+    //MenuItemActionType actionType = MenuItemActionType.NewWindow;
         MenuItemActionType actionType = (MenuItemActionType)enumValue;
-  
+
         switch (actionType)
         {
             case MenuItemActionType.PerformAction:
@@ -93,7 +111,6 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
                 {
                     list.ClearArray();
                 }
-                
     
                 for (int i = 0; i < list.arraySize; i++)
                 {
@@ -101,27 +118,27 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
                     EditorGUILayout.PropertyField(listItem);
                 }
 
-
-                //EditorGUILayout.PropertyField(property.FindPropertyRelative("WindowsToOpen"));
                 break;
             case MenuItemActionType.NewMenuSection:
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"), true);
+                EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"));
                 break;
             default:
                 break;
         }
 
-        //EditorGUI.indentLevel--;
+        //MenuItemEditorWindow window = (MenuItemEditorWindow)EditorWindow.GetWindow(typeof(MenuItemEditorWindow), false, "Edit window");
+
         EditorGUI.EndProperty();
+        //EditorGUI.indentLevel--;
     }
 }
 
-[CustomPropertyDrawer(typeof(RPGMenuData))]
+//[CustomPropertyDrawer(typeof(RPGMenuData))]
+/*
 public class RPGMenuDataDrawer : PropertyDrawer
 {
     void GuiLine(int i_height = 1)
     {
-
         Rect rect = EditorGUILayout.GetControlRect(true, i_height);
         rect.height = i_height;
         EditorGUI.DrawRect(rect, new Color(0.3f, 0.3f, 0.3f, 1));
@@ -130,35 +147,32 @@ public class RPGMenuDataDrawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginProperty(position, label, property);
-        //position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+
         EditorGUILayout.PropertyField(property.FindPropertyRelative("MenuName"));
 
         var list = property.FindPropertyRelative("MenuItems");
-
         var pos = EditorGUILayout.GetControlRect();
-        if (GUI.Button(pos, "Add Item"))
-        {
-            list.InsertArrayElementAtIndex(list.arraySize);
-        }
 
         pos.y += 20;
-        if (GUI.Button(pos, "Clear items"))
-        {
-            list.ClearArray();
-        }
-
         for (int i = 0; i < list.arraySize; i++)
         {
             var listItem = list.GetArrayElementAtIndex(i);
-            EditorGUILayout.PropertyField(listItem);
-            pos = EditorGUILayout.GetControlRect();
-            if (GUI.Button(pos, "Delete"))
-            {
-                list.DeleteArrayElementAtIndex(i);
-            }
 
+            //EditorGUILayout.PropertyField(listItem);
+            pos = EditorGUILayout.GetControlRect();
+           // if (GUI.Button(pos, "Edit"))
+            //{
+                //MenuItemEditorWindow window = (MenuItemEditorWindow)EditorWindow.GetWindow(typeof(MenuItemEditorWindow), false, "Edit window");
+              //  window.ShowProperty(listItem);
+            //}
         }
 
         EditorGUI.EndProperty();
     }
+
+    void EditScreen()
+    {
+
+    }
 }
+*/

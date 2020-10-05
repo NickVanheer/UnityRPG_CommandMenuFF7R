@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -12,16 +13,29 @@ public class RPGMenuItemData
     public string Text;
     public string HelpText;
 
-    public MenuItemActionType ItemType;
+    public int ATBCost;
+    public int MPCost;
+
+    public MenuItemActionType ItemType = MenuItemActionType.PerformAction;
 
     //Contents. Either: 
     public string ActionToPerform;
     //public RPGMenu MenuToOpen; 
     public List<GameObject> WindowsToOpen; //If the menu already exists in the editor
-    public RPGMenuData DynamicMenuData; //If the menu is new/dynamic
 
-    public int ATBCost;
-    public int MPCost;
+    //[Header("Dynamic data for sections")]
+    public GameObject DynamicMenuData; 
+
+    public RPGMenuItemData()
+    {
+        Text = "Empty";
+        HelpText = "Empty";
+        WindowsToOpen = new List<GameObject>();
+        ItemType = MenuItemActionType.PerformAction;
+        ActionToPerform = "";
+        ATBCost = 0;
+        MPCost = 0;
+    }
 
     //It's an action
     public RPGMenuItemData(string text, string helpText, string actionString, int atb, int mp)
@@ -29,7 +43,6 @@ public class RPGMenuItemData
         Text = text;
         HelpText = helpText;
         WindowsToOpen = new List<GameObject>();
-        DynamicMenuData = null;
         ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = actionString;
         ATBCost = atb;
@@ -43,7 +56,6 @@ public class RPGMenuItemData
         HelpText = helpText;
         WindowsToOpen = new List<GameObject>();
         WindowsToOpen.Add(menuToOpen);
-        DynamicMenuData = null;
         ItemType = MenuItemActionType.NewWindow;
         ActionToPerform = "";
         ATBCost = 0;
@@ -56,28 +68,14 @@ public class RPGMenuItemData
         Text = text;
         HelpText = helpText;
         WindowsToOpen = new List<GameObject>();
-        DynamicMenuData = null;
         ItemType = MenuItemActionType.PerformAction;
         ActionToPerform = "";
         ATBCost = 0;
         MPCost = 0;
     }
-
-    //New content
-    public RPGMenuItemData(string text, string helpText, RPGMenuData newData)
-    {
-        Text = text;
-        HelpText = helpText;
-        WindowsToOpen = new List<GameObject>();
-        DynamicMenuData = newData;
-        ItemType = MenuItemActionType.NewMenuSection;
-        ActionToPerform = "";
-        ATBCost = 0;
-        MPCost = 0;
-    }
-
 }
 
+[System.Serializable]
 public enum MenuItemActionType { PerformAction, NewWindow, NewMenuSection }
 
 public class RPGMenuItem : MonoBehaviour {
@@ -89,14 +87,12 @@ public class RPGMenuItem : MonoBehaviour {
     Color backgroundColor;
     bool isCached = false;
 
-    MenuItemSelectedAnimation animation;
+    MenuItemSelectedAnimation selectedAnimation;
 
     public void Start()
     {
-        if (MenuItemData == null)
-        {
-            Debug.Log("Empty");
-        }
+        if (GetComponent<Image>() == null)
+            return;
 
         if (!isCached)
         {
@@ -105,9 +101,7 @@ public class RPGMenuItem : MonoBehaviour {
             isCached = true;
         }
 
-        animation = GetComponent<MenuItemSelectedAnimation>();
-
-        //transform.GetChild(0).GetComponent<Text>().text = MenuItemData.Text; 
+        selectedAnimation = GetComponent<MenuItemSelectedAnimation>();
     }
     public virtual void Invoke()
     {
@@ -157,16 +151,16 @@ public class RPGMenuItem : MonoBehaviour {
             GetComponent<Image>().sprite = ParentMenu.MenuItemSelectedSprite;
             GetComponent<Image>().color = Color.white;
 
-            if (animation)
-                animation.Select();
+            if (selectedAnimation)
+                selectedAnimation.Select();
         }
         else
         {
             GetComponent<Image>().sprite = backgroundSprite;
             GetComponent<Image>().color = backgroundColor;
 
-            if (animation)
-                animation.Unselect();
+            if (selectedAnimation)
+                selectedAnimation.Unselect();
         }
     }
 
