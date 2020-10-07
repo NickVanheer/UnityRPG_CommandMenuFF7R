@@ -4,13 +4,13 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public enum RPGMenuType { ChangeContent, NewWindow };
+public enum RPGMenuActionType { ChangeContent, NewWindow };
 
 public class UINode : Node
 {
     public string NodeGUID;
     public RPGMenuData MenuData;
-    public RPGMenuType Type;
+    public RPGMenuActionType Type;
     public bool IsEntryPoint = false;
 
     public UINode()

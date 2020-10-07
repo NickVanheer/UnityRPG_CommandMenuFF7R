@@ -41,14 +41,14 @@ public class RPGMenuItemEditor : Editor
 
         EditorGUILayout.PropertyField(MenuItemData);
 
-        if (menuItem.MenuItemData.ItemType == MenuItemActionType.NewMenuSection && menuItem.MenuItemData.DynamicMenuData == null)
+        if (menuItem.MenuItemData.ItemType == MenuItemActionType.NewMenuSection && menuItem.MenuItemData.DynamicMenuObject == null)
         {
             if (GUILayout.Button("Add section"))
             {
                 GameObject gO = new GameObject("New section");
                 gO.transform.parent = menuItem.gameObject.transform;
                 gO.AddComponent<RPGMenuSection>();
-                menuItem.MenuItemData.DynamicMenuData = gO;
+                menuItem.MenuItemData.DynamicMenuObject = gO;
             }
         }
         serializedObject.ApplyModifiedProperties();
@@ -120,7 +120,7 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
 
                 break;
             case MenuItemActionType.NewMenuSection:
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuData"));
+                EditorGUILayout.PropertyField(property.FindPropertyRelative("DynamicMenuObject"));
                 break;
             default:
                 break;

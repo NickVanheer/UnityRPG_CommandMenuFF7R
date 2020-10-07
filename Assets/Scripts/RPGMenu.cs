@@ -45,7 +45,7 @@ public class RPGMenu : MonoBehaviour {
     public Text MenuTitle;
     public Text MenuHelp;
 
-    public List<RPGMenuItem> MenuItemsGO = new List<RPGMenuItem>();
+    private List<RPGMenuItem> menuItemsGO = new List<RPGMenuItem>();
     public bool ClearPanelContent = false;
 
     //Indexes
@@ -69,7 +69,10 @@ public class RPGMenu : MonoBehaviour {
     public List<GameObject> WindowsOpenAtTheSameTime = new List<GameObject>();
 
     public RPGMenuType MenuType = RPGMenuType.CommandMenu;
-    public GameObject HostWindow = null;
+    public GameObject HostWindowCommandMenuContent = null;
+    public GameObject HostWindowTabControlContent = null;
+
+    public bool ChangeTabsOnMove = false;
 
     public bool IsInitialized = false;
 
@@ -84,8 +87,8 @@ public class RPGMenu : MonoBehaviour {
         ID = ++IDPool;
         MenuCountExisting++;
 
-        if (HostWindow == null)
-            HostWindow = this.gameObject;
+        if (HostWindowCommandMenuContent == null)
+            HostWindowCommandMenuContent = this.gameObject;
 
         if (ClearPanelContent)
             rawRemoveUIElements(); 
@@ -103,7 +106,7 @@ public class RPGMenu : MonoBehaviour {
     void Start()
     {
         //AddToGlobalStack(this);
-        if (MenuItemsGO.Count > 0)
+        if (menuItemsGO.Count > 0)
         {
             selectedIndex = 0;
             updateSelected();
@@ -138,15 +141,14 @@ public class RPGMenu : MonoBehaviour {
     /*********** PUBLIC METHODS RELATED TO NAVIGATION *************/
     public void ClearContentsAndSections()
     {
-        for (int i = MenuItemsGO.Count - 1; i >= 0; i--)
+        for (int i = menuItemsGO.Count - 1; i >= 0; i--)
         {
-            Destroy(MenuItemsGO[i].gameObject);
+            Destroy(menuItemsGO[i].gameObject);
         }
 
-        MenuItemsGO.Clear();
+        menuItemsGO.Clear();
         MenuSections.Clear();
     }
-
 
     public void Hide()
     {
@@ -176,7 +178,7 @@ public class RPGMenu : MonoBehaviour {
     public void GoBackOneSectionInCurrentWindow()
     {
         MenuSections.Pop(); //pop the current one
-        removeGameObjects();
+        removeMenuItems();
         selectedIndex = 0;
         drawCurrentMenuSection();
 
@@ -186,40 +188,54 @@ public class RPGMenu : MonoBehaviour {
     /*********** PUBLIC METHODS RELATED TO CONTENT AND DATA ************/
     public void AddMenuItem(RPGMenuItemData itemData)
     {
-        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindow.transform, false);
+        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindowCommandMenuContent.transform, false);
         gO.name = itemData.Text;
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
         item.ParentMenu = this;
         item.MenuItemData = itemData;
         //item.MenuToOpen = menuToOpen;
 
-        this.MenuItemsGO.Add(item);
+        this.menuItemsGO.Add(item);
         item.transform.GetChild(0).GetComponent<Text>().text = itemData.Text; //Set the text, can be safer
     }
 
     public void AddMenuItemGOOnly()
     {
-        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindow.transform, false);
+        GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindowCommandMenuContent.transform, false);
         gO.name = "New item";
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();
         item.ParentMenu = this;
         item.MenuItemData = new RPGMenuItemData("New item", "Help text for this item");
 
-        this.MenuItemsGO.Add(item);
+        this.menuItemsGO.Add(item);
         item.transform.GetChild(0).GetComponent<Text>().text = "New item"; //Set the text, can be safer
     }
 
-    public void OpenNewSection(GameObject data)
+    public void OpenNewSection(GameObject dynamicMenu)
     {
+        if(MenuType == RPGMenuType.TabMenu)
+        {
+            //We simply show the menu
+            if(this.HostWindowTabControlContent != null)
+                this.HostWindowTabControlContent.SetActive(false);
+            this.HostWindowTabControlContent = dynamicMenu;
+            this.HostWindowTabControlContent.SetActive(true);
+            return;
+        }
+
+        //Else: we are a regular RPG menu, clear the current menu and add this new section
+        removeMenuItems();
+
         //Add to current stack MenuSections
         if (MenuSections == null)
             MenuSections = new Stack<RPGMenuData>();
 
+        //The dynamicMenu parameter is a GameObject with RPGMenuSection component residing in the scene, which we need to copy over into the current menu
         RPGMenuData menuData = new RPGMenuData(gameObject.name); //Todo use RPGMenuSection data
 
-        for (int i = 0; i < data.transform.childCount; i++)
+        for (int i = 0; i < dynamicMenu.transform.childCount; i++)
         {
-            GameObject child = data.transform.GetChild(i).gameObject;
+            GameObject child = dynamicMenu.transform.GetChild(i).gameObject;
             RPGMenuItem item = child.GetComponent<RPGMenuItem>();
 
             if(item)
@@ -229,11 +245,6 @@ public class RPGMenu : MonoBehaviour {
         }
 
         MenuSections.Push(menuData);
-
-        //MenuSections.Push(data);
-
-        //Clear current window content
-        removeGameObjects();
 
         //Add new menu items to current window
         drawCurrentMenuSection();
@@ -306,13 +317,13 @@ public class RPGMenu : MonoBehaviour {
             menuTitle = MenuTitle.text;
 
         RPGMenuData currentMenu = new RPGMenuData(menuTitle);
-        foreach (Transform trans in HostWindow.transform)
+        foreach (Transform trans in HostWindowCommandMenuContent.transform)
         {
             RPGMenuItem item = trans.GetComponent<RPGMenuItem>();
             if(item != null)
             {
                 item.ParentMenu = this;
-                MenuItemsGO.Add(item);
+                menuItemsGO.Add(item);
                 currentMenu.AddItem(item.MenuItemData);
             }
         }
@@ -336,7 +347,7 @@ public class RPGMenu : MonoBehaviour {
 
     private void rawRemoveUIElements()
     {
-        foreach (Transform trans in HostWindow.transform)
+        foreach (Transform trans in HostWindowCommandMenuContent.transform)
         {
             GameObject.Destroy(trans.gameObject);
         }
@@ -345,8 +356,8 @@ public class RPGMenu : MonoBehaviour {
     [ExecuteInEditMode]
     public void RawClearUIFromEditor()
     {
-        for (int i = HostWindow.transform.childCount; i > 0; --i)
-            DestroyImmediate(HostWindow.transform.GetChild(0).gameObject);
+        for (int i = HostWindowCommandMenuContent.transform.childCount; i > 0; --i)
+            DestroyImmediate(HostWindowCommandMenuContent.transform.GetChild(0).gameObject);
 
         /*
         var tempArray = new GameObject[parent.transform.childCount];
@@ -379,7 +390,7 @@ public class RPGMenu : MonoBehaviour {
             }
         }
 
-        if (MenuItemsGO.Count == 0)
+        if (menuItemsGO.Count == 0)
             return;
 
         int currentIndex = selectedIndex;
@@ -388,23 +399,44 @@ public class RPGMenu : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             selectedIndex--;
         if (Input.GetKeyDown(KeyCode.Return))
-            MenuItemsGO[selectedIndex].Invoke();
+            menuItemsGO[selectedIndex].Invoke();
 
-        selectedIndex = Mathf.Clamp(selectedIndex, 0, MenuItemsGO.Count - 1);
+        selectedIndex = Mathf.Clamp(selectedIndex, 0, menuItemsGO.Count - 1);
         if (selectedIndex != currentIndex)
         {
             updateSelected();
+
+            if(MenuType == RPGMenuType.TabMenu && ChangeTabsOnMove)
+            {
+                RPGMenuItem item = GetMenuItem(selectedIndex);
+                OpenNewSection(item.MenuItemData.DynamicMenuObject);
+            }
         }
     }
 
-    private void removeGameObjects()
+    public int MenuItemCount { get { return menuItemsGO.Count; } }
+
+    public List<string> GetMenuItemNames()
     {
-        for (int i = MenuItemsGO.Count - 1; i >= 0; i--)
+        List<string> itemNames = new List<string>();
+
+        menuItemsGO.ForEach(item => 
         {
-            Destroy(MenuItemsGO[i].gameObject);
+            RPGMenuItem menuItem = item.GetComponent<RPGMenuItem>();
+            itemNames.Add(menuItem.MenuItemData.Text);
+        });
+
+        return itemNames;
+    }
+
+    private void removeMenuItems()
+    {
+        for (int i = menuItemsGO.Count - 1; i >= 0; i--)
+        {
+            Destroy(menuItemsGO[i].gameObject);
         }
 
-        MenuItemsGO.Clear();
+        menuItemsGO.Clear();
     }
 
     private bool updateActiveVisual()
@@ -439,19 +471,30 @@ public class RPGMenu : MonoBehaviour {
 
         MenuTitle.text = currentSection.MenuName;
         MenuHelp.text = currentSection.MenuItems[0].HelpText;
+    }
 
+    public RPGMenuItem GetMenuItem(int index)
+    {
+        if (menuItemsGO.Count > index)
+        {
+            if (menuItemsGO[index] != null && menuItemsGO[index].GetComponent<RPGMenuItem>() != null)
+                return menuItemsGO[index].GetComponent<RPGMenuItem>();
+        }
+
+        Debug.LogError("Trying to access a menu item index that doesn't exist. Index: " + index);
+        return null;
     }
 
     public void updateSelected()
     {
-        Assert.IsTrue(MenuItemsGO.Count > 0, "No items in this menu list");
+        Assert.IsTrue(menuItemsGO.Count > 0, "No items in this menu list");
 
-        for (int i = 0; i < MenuItemsGO.Count; i++)
+        for (int i = 0; i < menuItemsGO.Count; i++)
         {
             if (selectedIndex == i)
-                MenuItemsGO[i].ToggleSelected(true);
+                menuItemsGO[i].ToggleSelected(true);
             else
-                MenuItemsGO[i].ToggleSelected(false);
+                menuItemsGO[i].ToggleSelected(false);
         }
 
         var currentSection = MenuSections.Peek();

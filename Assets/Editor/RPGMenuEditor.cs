@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 using JetBrains.Annotations;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -9,13 +10,24 @@ using System.Collections;
 [CustomEditor(typeof(RPGMenu))]
 public class RPGMenuEditor : Editor {
 
+    List<string> currentMenuItemNames = new List<string>();
     public override void OnInspectorGUI()
     {
         RPGMenu currentMenu = (RPGMenu)target;
 
         serializedObject.Update(); 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuType"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("HostWindow"));
+        switch(currentMenu.MenuType)
+        {
+            case RPGMenuType.CommandMenu:
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("HostWindowCommandMenuContent"));
+                break;
+            case RPGMenuType.TabMenu:
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("HostWindowTabControlContent"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("ChangeTabsOnMove"));
+                break;
+        }
+
         EditorGUILayout.Space(10);
 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("RPGMenuItemPrefab"));
@@ -36,10 +48,14 @@ public class RPGMenuEditor : Editor {
 
         EditorGUILayout.LabelField("Items: ");
 
-        foreach (var item in currentMenu.MenuItemsGO)
+        currentMenuItemNames = currentMenu.GetMenuItemNames();
+
+        if(currentMenuItemNames.Count != currentMenu.MenuItemCount)
+            currentMenuItemNames = currentMenu.GetMenuItemNames();
+
+        foreach (var name in currentMenuItemNames)
         {
-            RPGMenuItem menuItem = item.GetComponent<RPGMenuItem>();
-            EditorGUILayout.LabelField("- " + menuItem.MenuItemData.Text);
+            EditorGUILayout.LabelField("- " + name);
         }
 
         if (GUILayout.Button("Add menu item"))

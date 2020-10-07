@@ -184,7 +184,7 @@ public class NodeGraphView : GraphView
     {
         RPGMenu menuComponent = null;
 
-        if (menuNode.Type == RPGMenuType.NewWindow)
+        if (menuNode.Type == RPGMenuActionType.NewWindow)
         {
             Assert.IsNotNull(EditorData.NodeGraphDataObject.RPGMenuPanelPrefab, "RPG Menu Panel prefab object is not set");
 
@@ -213,13 +213,13 @@ public class NodeGraphView : GraphView
                 //The RPGMenu connected to this menu item
                 UINode connectedNode = p.connections.First().input.node as UINode;
 
-                if(connectedNode.Type == RPGMenuType.ChangeContent)
+                if(connectedNode.Type == RPGMenuActionType.ChangeContent)
                 {
                     CreateMenuInEditor(connectedNode);
                     //menuNode.MenuData.MenuItems[i].DynamicMenuData = connectedNode.MenuData;
                     //Todo: get item data from next section
                 }
-                else if(connectedNode.Type == RPGMenuType.NewWindow)
+                else if(connectedNode.Type == RPGMenuActionType.NewWindow)
                 {
                     RPGMenu menu = CreateMenuInEditor(connectedNode);
                     menuNode.MenuData.MenuItems[i].WindowsToOpen.Add(menu.gameObject);
@@ -241,9 +241,9 @@ public class NodeGraphView : GraphView
         RPGMenuData thisNodeData = new RPGMenuData(menuName);
         node.MenuData = thisNodeData;
 
-        EnumField interactTypeField = new EnumField(RPGMenuType.NewWindow);
-        node.Type = (RPGMenuType)interactTypeField.value;
-        interactTypeField.RegisterValueChangedCallback((ev) => { node.Type = (RPGMenuType)ev.newValue; });
+        EnumField interactTypeField = new EnumField(RPGMenuActionType.NewWindow);
+        node.Type = (RPGMenuActionType)interactTypeField.value;
+        interactTypeField.RegisterValueChangedCallback((ev) => { node.Type = (RPGMenuActionType)ev.newValue; });
         if (numberOfRPGMenus > 0)
         {
             //Allow user to select what kind of menu it is

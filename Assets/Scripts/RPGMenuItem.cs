@@ -24,7 +24,7 @@ public class RPGMenuItemData
     public List<GameObject> WindowsToOpen; //If the menu already exists in the editor
 
     //[Header("Dynamic data for sections")]
-    public GameObject DynamicMenuData; 
+    public GameObject DynamicMenuObject; 
 
     public RPGMenuItemData()
     {
@@ -102,6 +102,9 @@ public class RPGMenuItem : MonoBehaviour {
         }
 
         selectedAnimation = GetComponent<MenuItemSelectedAnimation>();
+
+        if (ParentMenu != null && ParentMenu.MenuType == RPGMenuType.TabMenu)
+            this.MenuItemData.DynamicMenuObject.SetActive(false);
     }
     public virtual void Invoke()
     {
@@ -122,7 +125,7 @@ public class RPGMenuItem : MonoBehaviour {
                 //MenuItemData.WindowsToOpen.ForEach((window) => { ParentMenu.OpenNewMenuWindow(window); }); //old
                 break;
             case MenuItemActionType.NewMenuSection:
-                ParentMenu.OpenNewSection(MenuItemData.DynamicMenuData);
+                ParentMenu.OpenNewSection(MenuItemData.DynamicMenuObject);
                 break;
             default:
                 break;
