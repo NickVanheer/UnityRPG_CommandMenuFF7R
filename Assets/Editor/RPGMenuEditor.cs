@@ -28,6 +28,8 @@ public class RPGMenuEditor : Editor {
                 break;
         }
 
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("IsHorizontalKeyboardControl"));
+
         EditorGUILayout.Space(10);
 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("RPGMenuItemPrefab"));
@@ -43,6 +45,7 @@ public class RPGMenuEditor : Editor {
         EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
         EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);
         EditorGUILayout.LabelField("Child windows open: " + currentMenu.WindowsOpenAtTheSameTime.Count);
+        EditorGUILayout.LabelField(("Current input: " + RPGMenu.dbgCurrentInputMenu));
 
         EditorGUILayout.Space(10);
 

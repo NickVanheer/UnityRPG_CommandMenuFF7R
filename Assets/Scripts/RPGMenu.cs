@@ -32,24 +32,20 @@ public enum RPGMenuType
 }
 public class RPGMenu : MonoBehaviour {
 
-    //prefab
+    //Prefabs
     public GameObject RPGMenuItemPrefab;
-    public GameObject RPGMenuItemMagicPrefab;
     public Sprite MenuItemSelectedSprite;
 
     public Color MenuItemBackgroundColor;
     public Color MenuItemSelectedColor;
 
     //Scene objects
-    //public GameObject MenuItemBackgroundHolder;
     public Text MenuTitle;
     public Text MenuHelp;
 
-    private List<RPGMenuItem> menuItemsGO = new List<RPGMenuItem>();
     public bool ClearPanelContent = false;
 
     //Indexes
-    private int selectedIndex = -1;
 
     //Data Subsection in this single menu
     public Stack<RPGMenuData> MenuSections;
@@ -57,14 +53,14 @@ public class RPGMenu : MonoBehaviour {
     //Contains all separate RPG menus globally for navigation
     public static Stack<RPGMenu> GlobalMenuListNavigation;
     public short ID;
-    private static short IDPool = -1;
+    private static short staticIDPool = -1;
 
     public string dbgGlobalStackCount = "0";
     public string dbgSectionCount = "0";
     public string dbgSelectedIndex = "0";
+    public static string dbgCurrentInputMenu = "None";
 
     public static int MenuCountExisting = 0;
-    public static int MenuCountActive = 0;
 
     public List<GameObject> WindowsOpenAtTheSameTime = new List<GameObject>();
 
@@ -73,8 +69,12 @@ public class RPGMenu : MonoBehaviour {
     public GameObject HostWindowTabControlContent = null;
 
     public bool ChangeTabsOnMove = false;
+    public bool IsHorizontalKeyboardControl = false;
 
     public bool IsInitialized = false;
+
+    private List<RPGMenuItem> menuItemsGO = new List<RPGMenuItem>();
+    private int selectedIndex = -1;
 
     private void Awake()
     {
@@ -84,7 +84,7 @@ public class RPGMenu : MonoBehaviour {
         if (GlobalMenuListNavigation == null)
             GlobalMenuListNavigation = new Stack<RPGMenu>();
 
-        ID = ++IDPool;
+        ID = ++staticIDPool;
         MenuCountExisting++;
 
         if (HostWindowCommandMenuContent == null)
@@ -134,22 +134,10 @@ public class RPGMenu : MonoBehaviour {
         if (!isActive)
             return;
 
-        //if (MenuItemsGO.Count > 0)
-            handleInput();
+        handleInput();
     }
 
     /*********** PUBLIC METHODS RELATED TO NAVIGATION *************/
-    public void ClearContentsAndSections()
-    {
-        for (int i = menuItemsGO.Count - 1; i >= 0; i--)
-        {
-            Destroy(menuItemsGO[i].gameObject);
-        }
-
-        menuItemsGO.Clear();
-        MenuSections.Clear();
-    }
-
     public void Hide()
     {
         var scaleComp = this.gameObject.GetComponent<ScaleOnClose>();
@@ -231,7 +219,7 @@ public class RPGMenu : MonoBehaviour {
             MenuSections = new Stack<RPGMenuData>();
 
         //The dynamicMenu parameter is a GameObject with RPGMenuSection component residing in the scene, which we need to copy over into the current menu
-        RPGMenuData menuData = new RPGMenuData(gameObject.name); //Todo use RPGMenuSection data
+        RPGMenuData menuData = new RPGMenuData(dynamicMenu.name); //Todo use RPGMenuSection data
 
         for (int i = 0; i < dynamicMenu.transform.childCount; i++)
         {
@@ -328,7 +316,7 @@ public class RPGMenu : MonoBehaviour {
             }
         }
 
-        if(currentMenu.MenuItems.Count >= 0)
+        if(currentMenu.MenuItems.Count > 0)
         {
             //Add to current stack MenuSections
             if (MenuSections == null)
@@ -336,6 +324,10 @@ public class RPGMenu : MonoBehaviour {
 
             MenuSections.Push(currentMenu);
             Debug.Log("Picking up UI: " + this.gameObject.name + " and creating new section");
+        }
+        else
+        {
+            Debug.LogError("Failed to pick up any menu items already in the menu (HostWindowCommandMenuContent). The data inside this menu might not have any RPGMenuItemData component attached?");
         }
     }
 
@@ -358,24 +350,28 @@ public class RPGMenu : MonoBehaviour {
     {
         for (int i = HostWindowCommandMenuContent.transform.childCount; i > 0; --i)
             DestroyImmediate(HostWindowCommandMenuContent.transform.GetChild(0).gameObject);
+    }
+    
+    private void handleUpDownControlInput()
+    {
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+            selectedIndex++;
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            selectedIndex--;
+    }
 
-        /*
-        var tempArray = new GameObject[parent.transform.childCount];
-
-        for(int i = 0; i < tempArray.Length; i++)
-        {
-            tempArray[i] = parent.transform.GetChild(i).gameObject;
-        }
-
-        foreach(var child in tempArray)
-        {
-            DestroyImmediate(child);
-        }
-         */
+    private void handleLeftRightControlInput()
+    {
+        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+            selectedIndex++;
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            selectedIndex--;
     }
 
     private void handleInput()
     {
+        dbgCurrentInputMenu = this.gameObject.name;
+
         if (Input.GetKeyDown(KeyCode.Backspace))
         {
             if (MenuSections.Count > 1)
@@ -385,8 +381,6 @@ public class RPGMenu : MonoBehaviour {
             else if (GlobalMenuListNavigation.Count > 0) //We are closing an additional dialog
             {
                 CloseCurrentAndAdditionalOpenedWindows();
-                //GoBackOneWindow();
-
             }
         }
 
@@ -394,10 +388,12 @@ public class RPGMenu : MonoBehaviour {
             return;
 
         int currentIndex = selectedIndex;
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-            selectedIndex++;
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-            selectedIndex--;
+
+        if (!IsHorizontalKeyboardControl)
+            handleUpDownControlInput();
+        else
+            handleLeftRightControlInput();
+
         if (Input.GetKeyDown(KeyCode.Return))
             menuItemsGO[selectedIndex].Invoke();
 
@@ -415,6 +411,8 @@ public class RPGMenu : MonoBehaviour {
     }
 
     public int MenuItemCount { get { return menuItemsGO.Count; } }
+
+    public bool IsActive { get { return GlobalMenuListNavigation.Count > 0 && GlobalMenuListNavigation.Peek() == this; } }
 
     public List<string> GetMenuItemNames()
     {
@@ -485,7 +483,7 @@ public class RPGMenu : MonoBehaviour {
         return null;
     }
 
-    public void updateSelected()
+    private void updateSelected()
     {
         Assert.IsTrue(menuItemsGO.Count > 0, "No items in this menu list");
 

@@ -122,7 +122,6 @@ public class RPGMenuItem : MonoBehaviour {
                 break;
             case MenuItemActionType.NewWindow:
                 ParentMenu.OpenGroupOfNewMenuWindows(MenuItemData.WindowsToOpen);
-                //MenuItemData.WindowsToOpen.ForEach((window) => { ParentMenu.OpenNewMenuWindow(window); }); //old
                 break;
             case MenuItemActionType.NewMenuSection:
                 ParentMenu.OpenNewSection(MenuItemData.DynamicMenuObject);
