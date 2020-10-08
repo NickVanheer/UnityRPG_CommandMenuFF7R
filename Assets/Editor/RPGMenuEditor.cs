@@ -39,13 +39,20 @@ public class RPGMenuEditor : Editor {
         //EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuItemBackgroundHolder"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuTitle"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuHelp"));
+        EditorGUILayout.Space(5);
 
-        EditorGUILayout.Space(20);
+        if (GUILayout.Button("Add menu item"))
+        {
+            currentMenu.AddMenuItemGOOnly();
+        }
+
+        EditorGUILayout.Space(10);
         EditorGUILayout.LabelField("Total Menus: " + RPGMenu.MenuCountExisting);
         EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
         EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);
         EditorGUILayout.LabelField("Child windows open: " + currentMenu.WindowsOpenAtTheSameTime.Count);
         EditorGUILayout.LabelField(("Current input: " + RPGMenu.dbgCurrentInputMenu));
+
 
         EditorGUILayout.Space(10);
 
@@ -61,10 +68,7 @@ public class RPGMenuEditor : Editor {
             EditorGUILayout.LabelField("- " + name);
         }
 
-        if (GUILayout.Button("Add menu item"))
-        {
-            currentMenu.AddMenuItemGOOnly();
-        }
+
 
         serializedObject.ApplyModifiedProperties();
     }

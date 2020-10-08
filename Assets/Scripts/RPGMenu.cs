@@ -5,6 +5,9 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using System;
+using System.ComponentModel;
+using JetBrains.Annotations;
 
 [System.Serializable]
 public class RPGMenuData
@@ -76,6 +79,8 @@ public class RPGMenu : MonoBehaviour {
     private List<RPGMenuItem> menuItemsGO = new List<RPGMenuItem>();
     private int selectedIndex = -1;
 
+    private bool isDownMotion = false;
+
     private void Awake()
     {
         if (MenuSections == null)
@@ -133,6 +138,9 @@ public class RPGMenu : MonoBehaviour {
 
         if (!isActive)
             return;
+
+        ScrollRect scrollRect = HostWindowCommandMenuContent.transform.parent.GetComponent<ScrollRect>();
+        //Debug.Log(scrollRect.verticalNormalizedPosition);
 
         handleInput();
     }
@@ -400,6 +408,11 @@ public class RPGMenu : MonoBehaviour {
         selectedIndex = Mathf.Clamp(selectedIndex, 0, menuItemsGO.Count - 1);
         if (selectedIndex != currentIndex)
         {
+            if (selectedIndex > currentIndex)
+                isDownMotion = true;
+            else
+                isDownMotion = false;
+
             updateSelected();
 
             if(MenuType == RPGMenuType.TabMenu && ChangeTabsOnMove)
@@ -416,10 +429,14 @@ public class RPGMenu : MonoBehaviour {
 
     public List<string> GetMenuItemNames()
     {
+        if (menuItemsGO.Count == 0)
+            return new List<string>();
         List<string> itemNames = new List<string>();
 
         menuItemsGO.ForEach(item => 
         {
+            if (item == null)
+                return;
             RPGMenuItem menuItem = item.GetComponent<RPGMenuItem>();
             itemNames.Add(menuItem.MenuItemData.Text);
         });
@@ -497,6 +514,47 @@ public class RPGMenu : MonoBehaviour {
 
         var currentSection = MenuSections.Peek();
         MenuHelp.text = currentSection.MenuItems[selectedIndex].HelpText;
+
+        UpdateScrollbar();
+    }
+
+    public void UpdateScrollbar()
+    {
+        ScrollRect scrollRect = HostWindowCommandMenuContent.transform.parent.GetComponent<ScrollRect>();
+
+        if (scrollRect != null)
+        {
+            float itemHeight = (menuItemsGO[0].transform as RectTransform).rect.height;
+            float scrollpanelHeight = (scrollRect.transform as RectTransform).rect.height;
+            float containerHeight = (HostWindowCommandMenuContent.transform as RectTransform).rect.height;
+
+            float elementsVisible = (float)scrollpanelHeight / itemHeight;
+            float heightPerVisibleElement = 1 / elementsVisible;
+
+            float heightPerElementContainer =  itemHeight / containerHeight; //The height also including elements outside of the visible area of the scrollview
+            float normalizedDistanceFromEdge = heightPerVisibleElement * (selectedIndex + 1);
+
+            //We're moving up and we aren't at the start of our list currently
+            if (!isDownMotion && scrollRect.verticalNormalizedPosition < 0.9f)
+                normalizedDistanceFromEdge = (heightPerVisibleElement * (menuItemsGO.Count + 1)) - (heightPerVisibleElement * (selectedIndex + 1));
+
+            //The selected elemeent is out of the bounds of what's being displayed (> 1), so scroll the scrollview
+            if (normalizedDistanceFromEdge > 1f)
+            {
+                //elementsOverCount = overflow / heightPerVisibleElement;
+
+                float currentOffset = heightPerElementContainer * selectedIndex;
+                currentOffset += 0.1f;
+                
+                if (currentOffset <= 0.1f)
+                    currentOffset = 0;
+
+                if (currentOffset >= 0.8f)
+                    currentOffset = 1;
+
+                scrollRect.verticalNormalizedPosition = 1 - currentOffset;
+            }
+        }
     }
 
     public void Log(string text)
