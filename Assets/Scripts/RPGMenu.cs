@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using System;
 using System.ComponentModel;
 using JetBrains.Annotations;
+using UnityEditor;
 
 [System.Serializable]
 public class RPGMenuData
@@ -197,6 +198,9 @@ public class RPGMenu : MonoBehaviour {
 
     public void AddMenuItemGOOnly()
     {
+
+        //GameObject gO = PrefabUtility.InstantiatePrefab(RPGMenuItemPrefab) as GameObject;
+        //gO.transform.SetParent(HostWindowCommandMenuContent.transform, false);
         GameObject gO = Instantiate<GameObject>(RPGMenuItemPrefab, HostWindowCommandMenuContent.transform, false);
         gO.name = "New item";
         RPGMenuItem item = gO.GetComponent<RPGMenuItem>();

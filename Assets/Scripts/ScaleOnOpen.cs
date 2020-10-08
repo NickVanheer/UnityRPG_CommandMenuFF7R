@@ -8,6 +8,13 @@ public class ScaleOnOpen : MonoBehaviour
     public float DelaySeconds = 1f;
     public float Duration = 0.5f;
 
+    private Vector3 originalScale;
+
+    public void Start()
+    {
+        //originalScale = this.transform.localScale; 
+    }
+
     void Update()
     {
         /*
@@ -21,7 +28,7 @@ public class ScaleOnOpen : MonoBehaviour
 
     IEnumerator waitABit()
     {
-        this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        this.transform.localScale = new Vector3(originalScale.x / 2, originalScale.y / 2, originalScale.z / 2);
         yield return new WaitForSeconds(DelaySeconds);
         Scale();
 
@@ -29,12 +36,13 @@ public class ScaleOnOpen : MonoBehaviour
 
     private void OnEnable()
     {
+        originalScale = this.transform.localScale;
         StartCoroutine(waitABit());
     }
 
     void Scale()
     {
-        LeanTween.scale(this.gameObject, new Vector3(1, 1, 1), Duration).setOnComplete(DoExtraStuff).setEase(EasingType);
+        LeanTween.scale(this.gameObject, originalScale, Duration).setOnComplete(DoExtraStuff).setEase(EasingType);
     }
 
     void DoExtraStuff()
