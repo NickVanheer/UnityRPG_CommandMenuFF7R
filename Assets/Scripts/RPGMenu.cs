@@ -74,6 +74,7 @@ public class RPGMenu : MonoBehaviour {
 
     public bool ChangeTabsOnMove = false;
     public bool IsHorizontalKeyboardControl = false;
+    public bool IsFocus = true;
 
     public bool IsInitialized = false;
 
@@ -117,6 +118,10 @@ public class RPGMenu : MonoBehaviour {
             selectedIndex = 0;
             updateSelected();
         }
+
+        //We're not navigating UI and we aren't the first element
+        if (ID != 0 && GlobalMenuListNavigation.Count == 0)
+            IsFocus = false;
     }
 
     public void OnEnable()
@@ -135,15 +140,10 @@ public class RPGMenu : MonoBehaviour {
         dbgSectionCount = MenuSections.Count.ToString();
         dbgSelectedIndex = selectedIndex.ToString();
 
-        bool isActive = updateActiveVisual();
+        bool isActiveInStack = updateActiveVisual();
 
-        if (!isActive)
-            return;
-
-        ScrollRect scrollRect = HostWindowCommandMenuContent.transform.parent.GetComponent<ScrollRect>();
-        //Debug.Log(scrollRect.verticalNormalizedPosition);
-
-        handleInput();
+        if (isActiveInStack && IsFocus)
+            handleInput();
     }
 
     /*********** PUBLIC METHODS RELATED TO NAVIGATION *************/
@@ -264,8 +264,6 @@ public class RPGMenu : MonoBehaviour {
 
         if (rpgComponent)
             AddToGlobalStack(rpgComponent);
-        //if(rpgComponent)
-        //GlobalMenuListNavigation.Push(rpgComponent);
     }
 
     public void CloseCurrentAndAdditionalOpenedWindows()

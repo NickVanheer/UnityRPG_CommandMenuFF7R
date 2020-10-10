@@ -43,36 +43,34 @@ public class RPGMenuEditor : Editor {
         //EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuItemBackgroundHolder"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuTitle"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MenuHelp"));
-        EditorGUILayout.Space(5);
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("IsFocus"));
+
+        EditorGUILayout.Space(10);
+        
+        EditorGUILayout.LabelField("Menu Items: ");
+
+        foreach (Transform child in currentMenu.HostWindowCommandMenuContent.transform)
+        {
+            if (child.gameObject.GetComponent<RPGMenuItem>() != null)
+                EditorGUILayout.ObjectField(child.gameObject, typeof(GameObject), true);
+        }
 
         if (GUILayout.Button("Add menu item"))
         {
             currentMenu.AddMenuItemGOOnly();
         }
 
+
         EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("Debug data (runtime only): ");
+        EditorGUILayout.LabelField("Menu ID: " + currentMenu.ID);
         EditorGUILayout.LabelField("Total Menus: " + RPGMenu.MenuCountExisting);
         EditorGUILayout.LabelField("Navigation stack: " + currentMenu.dbgGlobalStackCount);
         EditorGUILayout.LabelField("Sections in this menu: " + currentMenu.dbgSectionCount);
         EditorGUILayout.LabelField("Child windows open: " + currentMenu.WindowsOpenAtTheSameTime.Count);
         EditorGUILayout.LabelField(("Current input: " + RPGMenu.dbgCurrentInputMenu));
 
-
         EditorGUILayout.Space(10);
-
-        EditorGUILayout.LabelField("Items: ");
-
-        currentMenuItemNames = currentMenu.GetMenuItemNames();
-
-        if(currentMenuItemNames.Count != currentMenu.MenuItemCount)
-            currentMenuItemNames = currentMenu.GetMenuItemNames();
-
-        foreach (var name in currentMenuItemNames)
-        {
-            EditorGUILayout.LabelField("- " + name);
-        }
-
-
 
         serializedObject.ApplyModifiedProperties();
     }

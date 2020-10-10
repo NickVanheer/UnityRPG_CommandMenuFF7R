@@ -11,8 +11,14 @@ public class RPGMenuSectionEditor : Editor
         DrawDefaultInspector();
         RPGMenuSection currentSection = (RPGMenuSection)target;
 
-        GUILayout.Label("Edit options:");
-        if (GUILayout.Button("Add menu item to section"))
+        foreach (Transform child in currentSection.transform)
+        {
+            if (child.gameObject.GetComponent<RPGMenuItem>() != null)
+                EditorGUILayout.ObjectField(child.gameObject, typeof(GameObject), true);
+        }
+
+        GUILayout.Label("Menu items:");
+        if (GUILayout.Button("Add new menu item to this section"))
         {
             //currentMenu.AddMenuItemGOOnly();
             GameObject gO = new GameObject("Section menu item");

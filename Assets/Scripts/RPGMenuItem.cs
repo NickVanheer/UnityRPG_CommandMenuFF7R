@@ -20,6 +20,7 @@ public class RPGMenuItemData
 
     //Contents. Either: 
     public string ActionToPerform;
+    public UnityEvent ActionEvent;
     //public RPGMenu MenuToOpen; 
     public List<GameObject> WindowsToOpen; //If the menu already exists in the editor
 

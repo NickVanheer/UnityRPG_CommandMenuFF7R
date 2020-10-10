@@ -38,7 +38,6 @@ public class RPGMenuItemEditor : Editor
                 textComp.text = nameString;
         }
 
-
         EditorGUILayout.PropertyField(MenuItemData);
 
         if (menuItem.MenuItemData.ItemType == MenuItemActionType.NewMenuSection && menuItem.MenuItemData.DynamicMenuObject == null)
@@ -91,7 +90,7 @@ public class RPGMenuItemDataDrawer : PropertyDrawer
         switch (actionType)
         {
             case MenuItemActionType.PerformAction:
-                EditorGUILayout.PropertyField(property.FindPropertyRelative("ActionToPerform"));
+                EditorGUILayout.PropertyField(property.FindPropertyRelative("ActionEvent"));
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("ATBCost"));
                 EditorGUILayout.PropertyField(property.FindPropertyRelative("MPCost"));
                 //EditorGUILayout.Space(10);
